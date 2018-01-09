@@ -1,12 +1,19 @@
 {
-  "compileOnSave": true,
   "compilerOptions": {
     "outDir": "./lib/dist",
     "allowJs": true,
-    "target": "es2017",
+    "target": "es2015",
+    "jsx": "preserve",
     "noEmitOnError": true,
-    "moduleResolution": "node",
-    "module": "commonjs"
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "alwaysStrict": true,
+    "strictNullChecks": true,
+    "types": [
+      "react",
+      "react-native",
+      "jest"
+    ]
   },
   "include": [
     "./lib/src/**/*"
