@@ -80,12 +80,7 @@ public class StackController extends ParentController {
 		getView().addView(enteringView, getView().getChildCount() - 1);
 
 		if (animate) {
-			animator.animatePop(exitingView, new NavigationAnimator.NavigationAnimationListener() {
-				@Override
-				public void onAnimationEnd() {
-					finishPopping(exitingView, poppedTop, promise);
-				}
-			});
+			animator.animatePop(exitingView, () -> finishPopping(exitingView, poppedTop, promise));
 		} else {
 			finishPopping(exitingView, poppedTop, promise);
 		}
