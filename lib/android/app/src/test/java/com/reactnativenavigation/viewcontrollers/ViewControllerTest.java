@@ -173,6 +173,23 @@ public class ViewControllerTest extends BaseTest {
 	}
 
 	@Test
+    public void createView_notCalledAfterOnDestroy() throws Exception {
+        ViewController spy = spy(uut);
+        Shadows.shadowOf(spy.getView()).setMyParent(mock(ViewParent.class));
+        Assertions.assertThat(spy.getView()).isShown();
+        spy.getView().getViewTreeObserver().dispatchOnGlobalLayout();
+        verify(spy, times(1)).onViewAppeared();
+
+        spy.destroy();
+        try {
+            assertThat(spy.getView().isShown()).isFalse();
+        } catch (Exception e) {
+            assertThat(e).hasMessage("Tried to create view after it has already been destroyed");
+        }
+        verify(spy, times(1)).createView();
+    }
+
+	@Test
 	public void assignsIdToCreatedView() throws Exception {
 		assertThat(uut.getView().getId()).isPositive();
 	}

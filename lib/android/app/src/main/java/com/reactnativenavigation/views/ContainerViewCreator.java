@@ -4,7 +4,6 @@ import android.app.Activity;
 
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.uimanager.UIManagerModule;
-import com.reactnativenavigation.react.NavigationModule;
 import com.reactnativenavigation.react.ReactContainerViewCreator;
 import com.reactnativenavigation.viewcontrollers.ContainerViewController;
 
