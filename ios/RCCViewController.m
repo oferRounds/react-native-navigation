@@ -670,6 +670,43 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
       self.navigationItem.titleView.clipsToBounds = YES;
     }
   }
+  
+  if (self.navigatorStyle[@"iOSNavBarBottomBorderColor"]) {
+    UIColor *color = [RCTConvert UIColor:self.navigatorStyle[@"iOSNavBarBottomBorderColor"]];
+    
+    if (color) {
+      CGRect bottomBorderRect = CGRectMake(0, CGRectGetHeight(self.navigationController.navigationBar.frame), CGRectGetWidth(self.navigationController.navigationBar.frame), 0.5);
+      UIView *bottomBorder = [[UIView alloc] initWithFrame:bottomBorderRect];
+      [bottomBorder setBackgroundColor:color];
+      [self.navigationController.navigationBar addSubview:bottomBorder];
+    }
+  }
+  
+  
+  
+  if (@available(iOS 11.0, *)) {
+    NSNumber *prefersLargeTitles = self.navigatorStyle[@"prefersLargeTitles"];
+    BOOL prefersLargeTitlesBool = prefersLargeTitles ? [prefersLargeTitles boolValue] : NO;
+    self.navigationController.navigationBar.prefersLargeTitles = prefersLargeTitlesBool;
+    
+    if (prefersLargeTitlesBool &&
+        self.navigatorStyle[@"largeTitleFontFamily"] &&
+        self.navigatorStyle[@"largeTitleFontSize"]) {
+      
+      UIFont *font = [UIFont fontWithName:self.navigatorStyle[@"largeTitleFontFamily"] size:[self.navigatorStyle[@"largeTitleFontSize"] floatValue]];
+            
+      self.navigationController.navigationBar.largeTitleTextAttributes = @{
+                                                                           NSFontAttributeName: font,
+                                                                           NSForegroundColorAttributeName: [UIColor colorWithRed:29/255 green:29/255 blue:38/255 alpha:1]
+                                                                           };
+    }
+  }
+  
+  if (self.navigatorStyle[@"navBarBackgroundImageName"]) {
+    NSString *navBarBackgroundImageName = self.navigatorStyle[@"navBarBackgroundImageName"];
+    
+    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:navBarBackgroundImageName] forBarMetrics:UIBarMetricsDefault];
+  }
 }
 
 

@@ -444,6 +444,40 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     {
       barButtonItem.accessibilityIdentifier = testID;
     }
+    
+    if (button[@"buttonTintColor"]) {
+      barButtonItem.tintColor = [RCTConvert UIColor:button[@"buttonTintColor"]];
+      viewController.navigationController.navigationBar.tintColor = [RCTConvert UIColor:button[@"buttonTintColor"]];
+      viewController.navigationItem.backBarButtonItem.tintColor = [RCTConvert UIColor:button[@"buttonTintColor"]];
+    }
+    
+    if (button[@"buttonsFontFamily"] && button[@"buttonsFontSize"] &&
+        button[@"buttonsDisabledColor"] && button[@"buttonsNormalColor"]) {
+      UIFont *font = [UIFont fontWithName:button[@"buttonsFontFamily"] size:[button[@"buttonsFontSize"] floatValue]];
+      
+      NSDictionary *barButtonsDisabledTitleTextAtt = @{
+                                                       NSFontAttributeName: font,
+                                                       NSForegroundColorAttributeName: [RCTConvert UIColor:button[@"buttonsDisabledColor"]]
+                                                       };
+      
+      [barButtonItem setTitleTextAttributes:barButtonsDisabledTitleTextAtt forState:UIControlStateDisabled];
+      
+      NSDictionary *barButtonsNormalTitleTextAtt = @{
+                                                     NSFontAttributeName: font,
+                                                     NSForegroundColorAttributeName: [RCTConvert UIColor:button[@"buttonsNormalColor"]]
+                                                     };
+      
+      [barButtonItem setTitleTextAttributes:barButtonsNormalTitleTextAtt forState:UIControlStateNormal];
+      
+      NSDictionary *barButtonsHighlightedTitleTextAtt =
+      button[@"buttonHighlightedColor"] ? @{
+                                            NSFontAttributeName: font,
+                                            NSForegroundColorAttributeName: [RCTConvert UIColor:button[@"buttonsNormalColor"] ?: button[@"buttonHighlightedColor"]]
+                                            } :
+      barButtonsDisabledTitleTextAtt;
+      
+      [barButtonItem setTitleTextAttributes:barButtonsHighlightedTitleTextAtt forState:UIControlStateHighlighted];
+    }
   }
   
   if ([side isEqualToString:@"left"])

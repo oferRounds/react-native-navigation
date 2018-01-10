@@ -422,6 +422,7 @@ static NSMutableArray *gShownNotificationViews = nil;
     UIWindow *window = [[RCCManager sharedInstance] getAppWindow];
     NotificationView *notificationView = [[NotificationView alloc] initWithParams:params];
     [window addSubview:notificationView];
+    window.windowLevel = UIWindowLevelStatusBar+1;
     [gShownNotificationViews addObject:notificationView];
     [notificationView showWithCompletion:^()
      {
@@ -439,6 +440,9 @@ static NSMutableArray *gShownNotificationViews = nil;
     {
         NotificationView *notificationView = [gShownNotificationViews objectAtIndex:i];
         [gShownNotificationViews removeObject:notificationView];
+        
+        UIWindow *window = [[RCCManager sharedInstance] getAppWindow];
+        window.windowLevel = UIWindowLevelNormal;
         [notificationView dismissWithCompletion:^()
          {
              if (i == (count - 1))
