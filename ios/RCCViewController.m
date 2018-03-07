@@ -291,21 +291,6 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
   }];
 }
 
-// fix iOS11 safeArea - https://github.com/facebook/react-native/issues/15681
-// rnn issue - https://github.com/wix/react-native-navigation/issues/1858
-- (void)_traverseAndFixScrollViewSafeArea:(UIView *)view {
-#ifdef __IPHONE_11_0
-  if ([view isKindOfClass:UIScrollView.class] && [view respondsToSelector:@selector(setContentInsetAdjustmentBehavior:)]) {
-    [((UIScrollView*)view) setContentInsetAdjustmentBehavior:UIScrollViewContentInsetAdjustmentNever];
-  }
-  
-  [view.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-    [self _traverseAndFixScrollViewSafeArea:obj];
-  }];
-#endif
-  
-}
-
 - (void)viewDidAppear:(BOOL)animated
 {
   [super viewDidAppear:animated];
@@ -317,7 +302,6 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 - (void)viewWillAppear:(BOOL)animated
 {
   [super viewWillAppear:animated];
-  [self _traverseAndFixScrollViewSafeArea:self.view];
   [self sendGlobalScreenEvent:@"willAppear" endTimestampString:[self getTimestampString] shouldReset:NO];
   [self sendScreenChangedEvent:@"willAppear"];
   [self setStyleOnAppear];
@@ -666,52 +650,43 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
       
       NSDictionary *initialProps = self.navigatorStyle[@"navBarCustomViewInitialProps"];
       RCTRootView *reactView = [[RCTRootView alloc] initWithBridge:bridge moduleName:navBarCustomView initialProperties:initialProps];
-      
-      RCCCustomTitleView *titleView = [[RCCCustomTitleView alloc] initWithFrame:self.navigationController.navigationBar.bounds subView:reactView alignment:self.navigatorStyle[@"navBarComponentAlignment"]];
-      titleView.backgroundColor = [UIColor clearColor];
-      reactView.backgroundColor = [UIColor clearColor];
-      
+
+      RCCCustomTitleView *titleView = [[RCCCustomTitleView alloc] initWithFrame:self.navigationController.navigationBar.bounds
+                                                                        subView:reactView
+                                                                      alignment:self.navigatorStyle[@"navBarComponentAlignment"]];
+
       self.navigationItem.titleView = titleView;
-      
       self.navigationItem.titleView.backgroundColor = [UIColor clearColor];
-      self.navigationItem.titleView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
       self.navigationItem.titleView.clipsToBounds = YES;
     }
   }
-  
-  if (self.navigatorStyle[@"iOSNavBarBottomBorderColor"]) {
-    UIColor *color = [RCTConvert UIColor:self.navigatorStyle[@"iOSNavBarBottomBorderColor"]];
-    
-    if (color) {
-      CGRect bottomBorderRect = CGRectMake(0, CGRectGetHeight(self.navigationController.navigationBar.frame), CGRectGetWidth(self.navigationController.navigationBar.frame), 0.5);
-      UIView *bottomBorder = [[UIView alloc] initWithFrame:bottomBorderRect];
-      [bottomBorder setBackgroundColor:color];
-      [self.navigationController.navigationBar addSubview:bottomBorder];
-    }
-  }
-  
+
+  #if __IPHONE_OS_VERSION_MAX_ALLOWED > __IPHONE_10_3
   if (@available(iOS 11.0, *)) {
-    NSNumber *prefersLargeTitles = self.navigatorStyle[@"prefersLargeTitles"];
-    BOOL prefersLargeTitlesBool = prefersLargeTitles ? [prefersLargeTitles boolValue] : NO;
-    self.navigationController.navigationBar.prefersLargeTitles = prefersLargeTitlesBool;
-    
-    if (prefersLargeTitlesBool &&
-        self.navigatorStyle[@"largeTitleFontFamily"] &&
-        self.navigatorStyle[@"largeTitleFontSize"]) {
-      
-      UIFont *font = [UIFont fontWithName:self.navigatorStyle[@"largeTitleFontFamily"] size:[self.navigatorStyle[@"largeTitleFontSize"] floatValue]];
-            
-      self.navigationController.navigationBar.largeTitleTextAttributes = @{
-                                                                           NSFontAttributeName: font,
-                                                                           NSForegroundColorAttributeName: [UIColor colorWithRed:29/255 green:29/255 blue:38/255 alpha:1]
-                                                                           };
+    if ([self.navigationController.navigationBar respondsToSelector:@selector(setPrefersLargeTitles:)]) {
+      NSNumber *prefersLargeTitles = self.navigatorStyle[@"largeTitle"];
+      if (prefersLargeTitles) {
+        if ([prefersLargeTitles boolValue]) {
+          self.navigationController.navigationBar.prefersLargeTitles = YES;
+          self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeAlways;
+          self.navigationItem.titleView = nil;
+        } else {
+          self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeNever;
+        }
+      } else {
+        self.navigationController.navigationBar.prefersLargeTitles = NO;
+        self.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeNever;
+      }
     }
   }
-  
-  if (self.navigatorStyle[@"navBarBackgroundImageName"]) {
-    NSString *navBarBackgroundImageName = self.navigatorStyle[@"navBarBackgroundImageName"];
-    
-    [self.navigationController.navigationBar setBackgroundImage:[UIImage imageNamed:navBarBackgroundImageName] forBarMetrics:UIBarMetricsDefault];
+  #endif
+}
+
+- (void) viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
+  [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
+  RCCCustomTitleView* customNavBar = (RCCCustomTitleView*) self.navigationItem.titleView;
+  if (customNavBar && [customNavBar isKindOfClass:[RCCCustomTitleView class]]) {
+    [customNavBar viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
   }
 }
 
@@ -766,6 +741,15 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
     self._statusBarHidden = YES;
   } else {
     self._statusBarHidden = NO;
+  }
+  
+  NSDictionary *preferredContentSize = self.navigatorStyle[@"preferredContentSize"];
+  if (preferredContentSize) {
+    NSNumber *width = preferredContentSize[@"width"];
+    NSNumber *height = preferredContentSize[@"height"];
+    if (width && height) {
+      self.preferredContentSize = CGSizeMake([width floatValue], [height floatValue]);
+    }
   }
 }
 
