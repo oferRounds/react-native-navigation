@@ -32,243 +32,226 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 @implementation RCCViewController
 
 -(UIImageView *)navBarHairlineImageView {
-  if (!_navBarHairlineImageView) {
-    _navBarHairlineImageView = [self findHairlineImageViewUnder:self.navigationController.navigationBar];
-  }
-  return _navBarHairlineImageView;
+    if (!_navBarHairlineImageView) {
+        _navBarHairlineImageView = [self findHairlineImageViewUnder:self.navigationController.navigationBar];
+    }
+    return _navBarHairlineImageView;
 }
 
-+ (UIViewController*)controllerWithLayout:(NSDictionary *)layout globalProps:(NSDictionary *)globalProps bridge:(RCTBridge *)bridge
-{
-  UIViewController* controller = nil;
-  if (!layout) return nil;
-  
-  // get props
-  if (!layout[@"props"]) return nil;
-  if (![layout[@"props"] isKindOfClass:[NSDictionary class]]) return nil;
-  NSDictionary *props = layout[@"props"];
-  
-  // get children
-  if (!layout[@"children"]) return nil;
-  if (![layout[@"children"] isKindOfClass:[NSArray class]]) return nil;
-  NSArray *children = layout[@"children"];
-  
-  // create according to type
-  NSString *type = layout[@"type"];
-  if (!type) return nil;
-  
-  // regular view controller
-  if ([type isEqualToString:@"ViewControllerIOS"])
-  {
-    controller = [[RCCViewController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
-  }
-  
-  // navigation controller
-  if ([type isEqualToString:@"NavigationControllerIOS"])
-  {
-    controller = [[RCCNavigationController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
-  }
-  
-  // tab bar controller
-  if ([type isEqualToString:@"TabBarControllerIOS"])
-  {
-    controller = [[RCCTabBarController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
-  }
-  
-  // side menu controller
-  if ([type isEqualToString:@"DrawerControllerIOS"])
-  {
-    NSString *drawerType = props[@"type"];
++ (UIViewController*)controllerWithLayout:(NSDictionary *)layout globalProps:(NSDictionary *)globalProps bridge:(RCTBridge *)bridge {
+    UIViewController* controller = nil;
+    if (!layout) return nil;
     
-    if ([drawerType isEqualToString:@"TheSideBar"]) {
-      
-      controller = [[RCCTheSideBarManagerViewController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
-    }
-    else {
-      controller = [[RCCDrawerController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
-    }
-  }
-  
-  // register the controller if we have an id
-  NSString *componentId = props[@"id"];
-  if (controller && componentId)
-  {
-    [[RCCManager sharedInstance] registerController:controller componentId:componentId componentType:type];
+    // get props
+    if (!layout[@"props"]) return nil;
+    if (![layout[@"props"] isKindOfClass:[NSDictionary class]]) return nil;
+    NSDictionary *props = layout[@"props"];
     
-    if([controller isKindOfClass:[RCCViewController class]])
-    {
-      ((RCCViewController*)controller).controllerId = componentId;
+    // get children
+    if (!layout[@"children"]) return nil;
+    if (![layout[@"children"] isKindOfClass:[NSArray class]]) return nil;
+    NSArray *children = layout[@"children"];
+    
+    // create according to type
+    NSString *type = layout[@"type"];
+    if (!type) return nil;
+    
+    // regular view controller
+    if ([type isEqualToString:@"ViewControllerIOS"]) {
+        controller = [[RCCViewController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
     }
-  }
-  
-  // set background image at root level
-  NSString *rootBackgroundImageName = props[@"style"][@"rootBackgroundImageName"];
-  if (rootBackgroundImageName) {
-    UIImage *image = [UIImage imageNamed: rootBackgroundImageName];
-    UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
-    [controller.view insertSubview:imageView atIndex:0];
-  }
-  
-  return controller;
+    
+    // navigation controller
+    if ([type isEqualToString:@"NavigationControllerIOS"]) {
+        controller = [[RCCNavigationController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
+    }
+    
+    // tab bar controller
+    if ([type isEqualToString:@"TabBarControllerIOS"]) {
+        controller = [[RCCTabBarController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
+    }
+    
+    // side menu controller
+    if ([type isEqualToString:@"DrawerControllerIOS"]) {
+        NSString *drawerType = props[@"type"];
+        
+        if ([drawerType isEqualToString:@"TheSideBar"]) {
+            
+            controller = [[RCCTheSideBarManagerViewController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
+        }
+        else {
+            controller = [[RCCDrawerController alloc] initWithProps:props children:children globalProps:globalProps bridge:bridge];
+        }
+    }
+    
+    // register the controller if we have an id
+    NSString *componentId = props[@"id"];
+    if (controller && componentId) {
+        [[RCCManager sharedInstance] registerController:controller componentId:componentId componentType:type];
+        
+        if([controller isKindOfClass:[RCCViewController class]])
+        {
+            ((RCCViewController*)controller).controllerId = componentId;
+        }
+    }
+    
+    // set background image at root level
+    NSString *rootBackgroundImageName = props[@"style"][@"rootBackgroundImageName"];
+    if (rootBackgroundImageName) {
+        UIImage *image = [UIImage imageNamed: rootBackgroundImageName];
+        UIImageView *imageView = [[UIImageView alloc] initWithImage:image];
+        [controller.view insertSubview:imageView atIndex:0];
+    }
+    
+    return controller;
 }
 
 -(NSDictionary*)addCommandTypeAndTimestampIfExists:(NSDictionary*)globalProps passProps:(NSDictionary*)passProps {
-  NSMutableDictionary *modifiedPassProps = [NSMutableDictionary dictionaryWithDictionary:passProps];
-  
-  NSString *commandType = globalProps[GLOBAL_SCREEN_ACTION_COMMAND_TYPE];
-  if (commandType) {
-    modifiedPassProps[GLOBAL_SCREEN_ACTION_COMMAND_TYPE] = commandType;
-  }
-  
-  NSString *timestamp = globalProps[GLOBAL_SCREEN_ACTION_TIMESTAMP];
-  if (timestamp) {
-    modifiedPassProps[GLOBAL_SCREEN_ACTION_TIMESTAMP] = timestamp;
-  }
-  return modifiedPassProps;
-}
-
-
-
-- (instancetype)initWithProps:(NSDictionary *)props children:(NSArray *)children globalProps:(NSDictionary *)globalProps bridge:(RCTBridge *)bridge
-{
-  NSString *component = props[@"component"];
-  if (!component) return nil;
-  
-  NSDictionary *passProps = props[@"passProps"];
-  NSDictionary *navigatorStyle = props[@"style"];
-  
-  NSMutableDictionary *mergedProps = [NSMutableDictionary dictionaryWithDictionary:globalProps];
-  [mergedProps addEntriesFromDictionary:passProps];
-  
-  RCTRootView *reactView = [[RCTRootView alloc] initWithBridge:bridge moduleName:component initialProperties:mergedProps];
-  if (!reactView) return nil;
-  
-  self = [super init];
-  if (!self) return nil;
-  
-  [self commonInit:reactView navigatorStyle:navigatorStyle props:props];
-  
-  self.navigationController.interactivePopGestureRecognizer.delegate = self;
-  
-  return self;
-}
-
-- (instancetype)initWithComponent:(NSString *)component passProps:(NSDictionary *)passProps navigatorStyle:(NSDictionary*)navigatorStyle globalProps:(NSDictionary *)globalProps bridge:(RCTBridge *)bridge
-{
-  NSMutableDictionary *mergedProps = [NSMutableDictionary dictionaryWithDictionary:globalProps];
-  [mergedProps addEntriesFromDictionary:passProps];
-  
-  RCTRootView *reactView = [[RCTRootView alloc] initWithBridge:bridge moduleName:component initialProperties:mergedProps];
-  if (!reactView) return nil;
-  
-  self = [super init];
-  if (!self) return nil;
-  
-  NSDictionary *modifiedPassProps = [self addCommandTypeAndTimestampIfExists:globalProps passProps:passProps];
-
-  [self commonInit:reactView navigatorStyle:navigatorStyle props:modifiedPassProps];
-  
-  return self;
-}
-
-- (void)commonInit:(RCTRootView*)reactView navigatorStyle:(NSDictionary*)navigatorStyle props:(NSDictionary*)props
-{
-  self.view = reactView;
-  
-  self.edgesForExtendedLayout = UIRectEdgeNone; // default
-  self.automaticallyAdjustsScrollViewInsets = NO; // default
-  
-  self.navigatorStyle = [NSMutableDictionary dictionaryWithDictionary:[[RCCManager sharedInstance] getAppStyle]];
-  [self.navigatorStyle addEntriesFromDictionary:navigatorStyle];
-
-  
-  [self setStyleOnInit];
-  
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onRNReload) name:RCTJavaScriptWillStartLoadingNotification object:nil];
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onCancelReactTouches) name:RCCViewControllerCancelReactTouchesNotification object:nil];
-  
-  self.commandType = props[GLOBAL_SCREEN_ACTION_COMMAND_TYPE];
-  self.timestamp = props[GLOBAL_SCREEN_ACTION_TIMESTAMP];
-  
-  
-  // In order to support 3rd party native ViewControllers, we support passing a class name as a prop named `ExternalNativeScreenClass`
-  // In this case, we create an instance and add it as a child ViewController which preserves the VC lifecycle.
-  // In case some props are necessary in the native ViewController, the ExternalNativeScreenProps can be used to pass them
-  [self addExternalVCIfNecessary:props];
-}
-
-- (void)dealloc
-{
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
-  self.view = nil;
-}
-
--(void)onRNReload
-{
-  [[NSNotificationCenter defaultCenter] removeObserver:self];
-  self.view = nil;
-}
-
--(void)onCancelReactTouches
-{
-  if ([self.view isKindOfClass:[RCTRootView class]]){
-    [(RCTRootView*)self.view cancelTouches];
-  }
-}
-
-- (void)sendScreenChangedEvent:(NSString *)eventName
-{
-  if ([self.view isKindOfClass:[RCTRootView class]]){
+    NSMutableDictionary *modifiedPassProps = [NSMutableDictionary dictionaryWithDictionary:passProps];
     
-    RCTRootView *rootView = (RCTRootView *)self.view;
-    
-    if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
-      
-      [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:rootView.appProperties[@"navigatorEventID"] body:@
-       {
-         @"type": @"ScreenChangedEvent",
-         @"id": eventName
-       }];
+    NSString *commandType = globalProps[GLOBAL_SCREEN_ACTION_COMMAND_TYPE];
+    if (commandType) {
+        modifiedPassProps[GLOBAL_SCREEN_ACTION_COMMAND_TYPE] = commandType;
     }
-  }
+    
+    NSString *timestamp = globalProps[GLOBAL_SCREEN_ACTION_TIMESTAMP];
+    if (timestamp) {
+        modifiedPassProps[GLOBAL_SCREEN_ACTION_TIMESTAMP] = timestamp;
+    }
+    return modifiedPassProps;
+}
+
+
+
+- (instancetype)initWithProps:(NSDictionary *)props children:(NSArray *)children globalProps:(NSDictionary *)globalProps bridge:(RCTBridge *)bridge {
+    NSString *component = props[@"component"];
+    if (!component) return nil;
+    
+    NSDictionary *passProps = props[@"passProps"];
+    NSDictionary *navigatorStyle = props[@"style"];
+    
+    NSMutableDictionary *mergedProps = [NSMutableDictionary dictionaryWithDictionary:globalProps];
+    [mergedProps addEntriesFromDictionary:passProps];
+    
+    RCTRootView *reactView = [[RCTRootView alloc] initWithBridge:bridge moduleName:component initialProperties:mergedProps];
+    if (!reactView) return nil;
+    
+    self = [super init];
+    if (!self) return nil;
+    
+    [self commonInit:reactView navigatorStyle:navigatorStyle props:props];
+    
+    self.navigationController.interactivePopGestureRecognizer.delegate = self;
+    
+    return self;
+}
+
+- (instancetype)initWithComponent:(NSString *)component passProps:(NSDictionary *)passProps navigatorStyle:(NSDictionary*)navigatorStyle globalProps:(NSDictionary *)globalProps bridge:(RCTBridge *)bridge {
+    NSMutableDictionary *mergedProps = [NSMutableDictionary dictionaryWithDictionary:globalProps];
+    [mergedProps addEntriesFromDictionary:passProps];
+    
+    RCTRootView *reactView = [[RCTRootView alloc] initWithBridge:bridge moduleName:component initialProperties:mergedProps];
+    if (!reactView) return nil;
+    
+    self = [super init];
+    if (!self) return nil;
+    
+    NSDictionary *modifiedPassProps = [self addCommandTypeAndTimestampIfExists:globalProps passProps:passProps];
+    
+    [self commonInit:reactView navigatorStyle:navigatorStyle props:modifiedPassProps];
+    
+    return self;
+}
+
+- (void)commonInit:(RCTRootView*)reactView navigatorStyle:(NSDictionary*)navigatorStyle props:(NSDictionary*)props {
+    self.view = reactView;
+    
+    self.edgesForExtendedLayout = UIRectEdgeNone; // default
+    self.automaticallyAdjustsScrollViewInsets = NO; // default
+    
+    self.navigatorStyle = [NSMutableDictionary dictionaryWithDictionary:[[RCCManager sharedInstance] getAppStyle]];
+    [self.navigatorStyle addEntriesFromDictionary:navigatorStyle];
+    
+    
+    [self setStyleOnInit];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onRNReload) name:RCTJavaScriptWillStartLoadingNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onCancelReactTouches) name:RCCViewControllerCancelReactTouchesNotification object:nil];
+    
+    self.commandType = props[GLOBAL_SCREEN_ACTION_COMMAND_TYPE];
+    self.timestamp = props[GLOBAL_SCREEN_ACTION_TIMESTAMP];
+    
+    
+    // In order to support 3rd party native ViewControllers, we support passing a class name as a prop named `ExternalNativeScreenClass`
+    // In this case, we create an instance and add it as a child ViewController which preserves the VC lifecycle.
+    // In case some props are necessary in the native ViewController, the ExternalNativeScreenProps can be used to pass them
+    [self addExternalVCIfNecessary:props];
+}
+
+- (void)dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    self.view = nil;
+}
+
+-(void)onRNReload {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    self.view = nil;
+}
+
+-(void)onCancelReactTouches {
+    if ([self.view isKindOfClass:[RCTRootView class]]){
+        [(RCTRootView*)self.view cancelTouches];
+    }
+}
+
+- (void)sendScreenChangedEvent:(NSString *)eventName {
+    if ([self.view isKindOfClass:[RCTRootView class]]) {
+        
+        RCTRootView *rootView = (RCTRootView *)self.view;
+        
+        if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
+            
+            [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:rootView.appProperties[@"navigatorEventID"] body:@
+             {
+                 @"type": @"ScreenChangedEvent",
+                 @"id": eventName
+             }];
+        }
+    }
 }
 
 - (void)sendGlobalScreenEvent:(NSString *)eventName endTimestampString:(NSString *)endTimestampStr shouldReset:(BOOL)shouldReset {
-  
-  if (!self.commandType) return;
-  
-  if ([self.view isKindOfClass:[RCTRootView class]]){
-    NSString *screenName = [((RCTRootView*)self.view) moduleName];
-    
-    [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:eventName body:@
-     {
-       @"commandType": self.commandType ? self.commandType : @"",
-       @"screen": screenName ? screenName : @"",
-       @"startTime": self.timestamp ? self.timestamp : @"",
-       @"endTime": endTimestampStr ? endTimestampStr : @""
-     }];
-    
-    if (shouldReset) {
-      self.commandType = nil;
-      self.timestamp = nil;
+    if ([self.view isKindOfClass:[RCTRootView class]]){
+        NSString *screenName = [((RCTRootView*)self.view) moduleName];
+        
+        [[[RCCManager sharedInstance] getBridge].eventDispatcher sendAppEventWithName:eventName body:@
+         {
+             @"commandType": self.commandType ? self.commandType : @"",
+             @"screen": screenName ? screenName : @"",
+             @"startTime": self.timestamp ? self.timestamp : @"",
+             @"endTime": endTimestampStr ? endTimestampStr : @""
+         }];
+        
+        if (shouldReset) {
+            self.commandType = nil;
+            self.timestamp = nil;
+        }
     }
-  }
 }
 
 
 -(BOOL)isDisappearTriggeredFromPop:(NSString *)eventName {
-
-  NSArray *navigationViewControllers = self.navigationController.viewControllers;
-  
-  if (navigationViewControllers.lastObject == self || [navigationViewControllers indexOfObject:self] == NSNotFound) {
-    return YES;
-  }
-  return NO;
+    NSArray *navigationViewControllers = self.navigationController.viewControllers;
+    
+    if (navigationViewControllers.lastObject == self || [navigationViewControllers indexOfObject:self] == NSNotFound) {
+        return YES;
+    }
+    return NO;
 }
 
 - (NSString *)getTimestampString {
-  long long milliseconds = (long long)([[NSDate date] timeIntervalSince1970] * 1000.0);
-  return [NSString stringWithFormat:@"%lld", milliseconds];
+    long long milliseconds = (long long)([[NSDate date] timeIntervalSince1970] * 1000.0);
+    return [NSString stringWithFormat:@"%lld", milliseconds];
 }
 
 // This is walk around for React-Native bug.
@@ -277,50 +260,45 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 // Buttons in ScrollView after changing route/pushing/showing modal
 // while there is a momentum scroll are not clickable.
 // Back to normal after user start scroll with momentum
-- (void)_traverseAndCall:(UIView*)view
-{
-  if([view isKindOfClass:[UIScrollView class]] && ([[(UIScrollView*)view delegate] respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) ) {
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [[(UIScrollView*)view delegate] scrollViewDidEndDecelerating:(id)view];
-    });
-  
-  }
-  
-  [view.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-    [self _traverseAndCall:obj];
-  }];
+- (void)_traverseAndCall:(UIView*)view {
+    if([view isKindOfClass:[UIScrollView class]] && ([[(UIScrollView*)view delegate] respondsToSelector:@selector(scrollViewDidEndDecelerating:)]) ) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [[(UIScrollView*)view delegate] scrollViewDidEndDecelerating:(id)view];
+        });
+        
+    }
+    
+    [view.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        [self _traverseAndCall:obj];
+    }];
 }
 
-- (void)viewDidAppear:(BOOL)animated
-{
-  [super viewDidAppear:animated];
-  [self sendGlobalScreenEvent:@"didAppear" endTimestampString:[self getTimestampString] shouldReset:YES];
-  [self sendScreenChangedEvent:@"didAppear"];
-  
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    [self sendGlobalScreenEvent:@"didAppear" endTimestampString:[self getTimestampString] shouldReset:YES];
+    [self sendScreenChangedEvent:@"didAppear"];
+    
 }
 
-- (void)viewWillAppear:(BOOL)animated
-{
-  [super viewWillAppear:animated];
-  [self sendGlobalScreenEvent:@"willAppear" endTimestampString:[self getTimestampString] shouldReset:NO];
-  [self sendScreenChangedEvent:@"willAppear"];
-  [self setStyleOnAppear];
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    [self sendGlobalScreenEvent:@"willAppear" endTimestampString:[self getTimestampString] shouldReset:NO];
+    [self sendScreenChangedEvent:@"willAppear"];
+    [self setStyleOnAppear];
 }
 
-- (void)viewDidDisappear:(BOOL)animated
-{
-  [self _traverseAndCall:self.view];
-  [super viewDidDisappear:animated];
-  [self sendGlobalScreenEvent:@"didDisappear" endTimestampString:[self getTimestampString] shouldReset:YES];
-  [self sendScreenChangedEvent:@"didDisappear"];
+- (void)viewDidDisappear:(BOOL)animated {
+    [self _traverseAndCall:self.view];
+    [super viewDidDisappear:animated];
+    [self sendGlobalScreenEvent:@"didDisappear" endTimestampString:[self getTimestampString] shouldReset:YES];
+    [self sendScreenChangedEvent:@"didDisappear"];
 }
 
-- (void)viewWillDisappear:(BOOL)animated
-{
-  [super viewWillDisappear:animated];
-  [self sendGlobalScreenEvent:@"willDisappear" endTimestampString:[self getTimestampString] shouldReset:NO];
-  [self sendScreenChangedEvent:@"willDisappear"];
-  [self setStyleOnDisappear];
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    [self sendGlobalScreenEvent:@"willDisappear" endTimestampString:[self getTimestampString] shouldReset:NO];
+    [self sendScreenChangedEvent:@"willDisappear"];
+    [self setStyleOnDisappear];
 }
 
 // most styles should be set here since when we pop a view controller that changed them
@@ -683,251 +661,234 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
 }
 
 - (void) viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
-  [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
-  RCCCustomTitleView* customNavBar = (RCCCustomTitleView*) self.navigationItem.titleView;
-  if (customNavBar && [customNavBar isKindOfClass:[RCCCustomTitleView class]]) {
-    [customNavBar viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
-  }
+    [super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
+    RCCCustomTitleView* customNavBar = (RCCCustomTitleView*) self.navigationItem.titleView;
+    if (customNavBar && [customNavBar isKindOfClass:[RCCCustomTitleView class]]) {
+        [customNavBar viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
+    }
 }
 
 
 -(void)storeOriginalNavBarImages {
-  
-  NSMutableDictionary *originalNavBarImages = [@{} mutableCopy];
-  UIImage *bgImage = [self.navigationController.navigationBar backgroundImageForBarMetrics:UIBarMetricsDefault];
-  if (bgImage != nil) {
-    originalNavBarImages[@"bgImage"] = bgImage;
-  }
-  UIImage *shadowImage = self.navigationController.navigationBar.shadowImage;
-  if (shadowImage != nil) {
-    originalNavBarImages[@"shadowImage"] = shadowImage;
-  }
-  self.originalNavBarImages = originalNavBarImages;
-  
+    NSMutableDictionary *originalNavBarImages = [@{} mutableCopy];
+    UIImage *bgImage = [self.navigationController.navigationBar backgroundImageForBarMetrics:UIBarMetricsDefault];
+    if (bgImage != nil) {
+        originalNavBarImages[@"bgImage"] = bgImage;
+    }
+    UIImage *shadowImage = self.navigationController.navigationBar.shadowImage;
+    if (shadowImage != nil) {
+        originalNavBarImages[@"shadowImage"] = shadowImage;
+    }
+    self.originalNavBarImages = originalNavBarImages;
+    
 }
 
 -(void)setStyleOnDisappear {
-  self.navBarHairlineImageView.hidden = NO;
-  
-  if (self.navigationController != nil && self.navigationController.interactivePopGestureRecognizer != nil && self.originalInteractivePopGestureDelegate != nil)
-  {
-    self.navigationController.interactivePopGestureRecognizer.delegate = self.originalInteractivePopGestureDelegate;
-    self.originalInteractivePopGestureDelegate = nil;
-  }
+    self.navBarHairlineImageView.hidden = NO;
+    
+    if (self.navigationController != nil && self.navigationController.interactivePopGestureRecognizer != nil && self.originalInteractivePopGestureDelegate != nil)
+    {
+        self.navigationController.interactivePopGestureRecognizer.delegate = self.originalInteractivePopGestureDelegate;
+        self.originalInteractivePopGestureDelegate = nil;
+    }
 }
 
 // only styles that can't be set on willAppear should be set here
-- (void)setStyleOnInit
-{
-  NSNumber *tabBarHidden = self.navigatorStyle[@"tabBarHidden"];
-  BOOL tabBarHiddenBool = tabBarHidden ? [tabBarHidden boolValue] : NO;
-  if (tabBarHiddenBool) {
-    self._hidesBottomBarWhenPushed = YES;
-  } else {
-    self._hidesBottomBarWhenPushed = NO;
-  }
-  
-  NSNumber *statusBarHideWithNavBar = self.navigatorStyle[@"statusBarHideWithNavBar"];
-  BOOL statusBarHideWithNavBarBool = statusBarHideWithNavBar ? [statusBarHideWithNavBar boolValue] : NO;
-  if (statusBarHideWithNavBarBool) {
-    self._statusBarHideWithNavBar = YES;
-  } else {
-    self._statusBarHideWithNavBar = NO;
-  }
-  
-  NSNumber *statusBarHidden = self.navigatorStyle[@"statusBarHidden"];
-  BOOL statusBarHiddenBool = statusBarHidden ? [statusBarHidden boolValue] : NO;
-  if (statusBarHiddenBool) {
-    self._statusBarHidden = YES;
-  } else {
-    self._statusBarHidden = NO;
-  }
-  
-  NSDictionary *preferredContentSize = self.navigatorStyle[@"preferredContentSize"];
-  if (preferredContentSize) {
-    NSNumber *width = preferredContentSize[@"width"];
-    NSNumber *height = preferredContentSize[@"height"];
-    if (width && height) {
-      self.preferredContentSize = CGSizeMake([width floatValue], [height floatValue]);
+- (void)setStyleOnInit {
+    NSNumber *tabBarHidden = self.navigatorStyle[@"tabBarHidden"];
+    BOOL tabBarHiddenBool = tabBarHidden ? [tabBarHidden boolValue] : NO;
+    if (tabBarHiddenBool) {
+        self._hidesBottomBarWhenPushed = YES;
+    } else {
+        self._hidesBottomBarWhenPushed = NO;
     }
-  }
+    
+    NSNumber *statusBarHideWithNavBar = self.navigatorStyle[@"statusBarHideWithNavBar"];
+    BOOL statusBarHideWithNavBarBool = statusBarHideWithNavBar ? [statusBarHideWithNavBar boolValue] : NO;
+    if (statusBarHideWithNavBarBool) {
+        self._statusBarHideWithNavBar = YES;
+    } else {
+        self._statusBarHideWithNavBar = NO;
+    }
+    
+    NSNumber *statusBarHidden = self.navigatorStyle[@"statusBarHidden"];
+    BOOL statusBarHiddenBool = statusBarHidden ? [statusBarHidden boolValue] : NO;
+    if (statusBarHiddenBool) {
+        self._statusBarHidden = YES;
+    } else {
+        self._statusBarHidden = NO;
+    }
+    
+    NSDictionary *preferredContentSize = self.navigatorStyle[@"preferredContentSize"];
+    if (preferredContentSize) {
+        NSNumber *width = preferredContentSize[@"width"];
+        NSNumber *height = preferredContentSize[@"height"];
+        if (width && height) {
+            self.preferredContentSize = CGSizeMake([width floatValue], [height floatValue]);
+        }
+    }
 }
 
-- (BOOL)hidesBottomBarWhenPushed
-{
-  if (!self._hidesBottomBarWhenPushed) return NO;
-  return (self.navigationController.topViewController == self) && ![(RCCTabBarController*)self.tabBarController tabBarHidden];
+- (BOOL)hidesBottomBarWhenPushed {
+    if (!self._hidesBottomBarWhenPushed) return NO;
+    return (self.navigationController.topViewController == self) && ![(RCCTabBarController*)self.tabBarController tabBarHidden];
 }
 
-- (BOOL)prefersStatusBarHidden
-{
-  if (self._statusBarHidden) {
-    return YES;
-  }
-  
-  if (self._statusBarHideWithNavBar) {
-    return self.navigationController.isNavigationBarHidden;
-  } else {
-    return NO;
-  }
+- (BOOL)prefersStatusBarHidden {
+    if (self._statusBarHidden) {
+        return YES;
+    }
+    
+    if (self._statusBarHideWithNavBar) {
+        return self.navigationController.isNavigationBarHidden;
+    } else {
+        return NO;
+    }
 }
 
 - (void)setNavBarVisibilityChange:(BOOL)animated {
-  [self.navigationController setNavigationBarHidden:[self.navigatorStyle[@"navBarHidden"] boolValue] animated:animated];
+    [self.navigationController setNavigationBarHidden:[self.navigatorStyle[@"navBarHidden"] boolValue] animated:animated];
 }
 
 
-- (UIStatusBarStyle)preferredStatusBarStyle
-{
-  if (self._statusBarTextColorSchemeLight){
-    return UIStatusBarStyleLightContent;
-  } else {
-    return UIStatusBarStyleDefault;
-  }
+- (UIStatusBarStyle)preferredStatusBarStyle {
+    if (self._statusBarTextColorSchemeLight){
+        return UIStatusBarStyleLightContent;
+    } else {
+        return UIStatusBarStyleDefault;
+    }
 }
 
 - (UIImageView *)findHairlineImageViewUnder:(UIView *)view {
-  if ([view isKindOfClass:UIImageView.class] && view.bounds.size.height <= 1.0) {
-    return (UIImageView *)view;
-  }
-  for (UIView *subview in view.subviews) {
-    UIImageView *imageView = [self findHairlineImageViewUnder:subview];
-    if (imageView) {
-      return imageView;
+    if ([view isKindOfClass:UIImageView.class] && view.bounds.size.height <= 1.0) {
+        return (UIImageView *)view;
     }
-  }
-  return nil;
+    for (UIView *subview in view.subviews) {
+        UIImageView *imageView = [self findHairlineImageViewUnder:subview];
+        if (imageView) {
+            return imageView;
+        }
+    }
+    return nil;
 }
 
--(void)addExternalVCIfNecessary:(NSDictionary*)props
-{
-  NSString *externalScreenClass = props[@"externalNativeScreenClass"];
-  if (externalScreenClass != nil)
-  {
-    Class class = NSClassFromString(externalScreenClass);
-    if (class != NULL)
-    {
-      id obj = [[class alloc] init];
-      if (obj != nil && [obj isKindOfClass:[UIViewController class]] && [obj conformsToProtocol:@protocol(RCCExternalViewControllerProtocol)])
-      {
-        ((id <RCCExternalViewControllerProtocol>)obj).controllerDelegate = self;
-        [obj setProps:props[@"externalNativeScreenProps"]];
-        
-        UIViewController *viewController = (UIViewController*)obj;
-        [self addChildViewController:viewController];
-        viewController.view.frame = self.view.bounds;
-        [self.view addSubview:viewController.view];
-        [viewController didMoveToParentViewController:self];
-      }
-      else
-      {
-        NSLog(@"addExternalVCIfNecessary: could not create instance. Make sure that your class is a UIViewController whihc confirms to RCCExternalViewControllerProtocol");
-      }
+-(void)addExternalVCIfNecessary:(NSDictionary*)props {
+    NSString *externalScreenClass = props[@"externalNativeScreenClass"];
+    if (externalScreenClass != nil) {
+        Class class = NSClassFromString(externalScreenClass);
+        if (class != NULL) {
+            id obj = [[class alloc] init];
+            if (obj != nil && [obj isKindOfClass:[UIViewController class]] && [obj conformsToProtocol:@protocol(RCCExternalViewControllerProtocol)]) {
+                ((id <RCCExternalViewControllerProtocol>)obj).controllerDelegate = self;
+                [obj setProps:props[@"externalNativeScreenProps"]];
+                
+                UIViewController *viewController = (UIViewController*)obj;
+                [self addChildViewController:viewController];
+                viewController.view.frame = self.view.bounds;
+                [self.view addSubview:viewController.view];
+                [viewController didMoveToParentViewController:self];
+            } else {
+                NSLog(@"addExternalVCIfNecessary: could not create instance. Make sure that your class is a UIViewController whihc confirms to RCCExternalViewControllerProtocol");
+            }
+        } else {
+            NSLog(@"addExternalVCIfNecessary: could not create class from string. Check that the proper class name wass passed in ExternalNativeScreenClass");
+        }
     }
-    else
-    {
-      NSLog(@"addExternalVCIfNecessary: could not create class from string. Check that the proper class name wass passed in ExternalNativeScreenClass");
-    }
-  }
 }
 
 #pragma mark - Preview Actions
 
 - (void)onActionPress:(NSString *)id {
-  if ([self.view isKindOfClass:[RCTRootView class]]) {
-    RCTRootView *rootView = (RCTRootView *)self.view;
-    if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
-      [[[RCCManager sharedInstance] getBridge].eventDispatcher
-       sendAppEventWithName:rootView.appProperties[@"navigatorEventID"]
-       body:@{
-              @"type": @"PreviewActionPress",
-              @"id": id
-              }];
+    if ([self.view isKindOfClass:[RCTRootView class]]) {
+        RCTRootView *rootView = (RCTRootView *)self.view;
+        if (rootView.appProperties && rootView.appProperties[@"navigatorEventID"]) {
+            [[[RCCManager sharedInstance] getBridge].eventDispatcher
+             sendAppEventWithName:rootView.appProperties[@"navigatorEventID"]
+             body:@{
+                    @"type": @"PreviewActionPress",
+                    @"id": id
+                    }];
+        }
     }
-  }
 }
 
 - (UIPreviewAction *) convertAction:(NSDictionary *)action {
-  NSString *actionId = action[@"id"];
-  NSString *actionTitle = action[@"title"];
-  UIPreviewActionStyle actionStyle = UIPreviewActionStyleDefault;
-  if ([action[@"style"] isEqualToString:@"selected"]) {
-    actionStyle = UIPreviewActionStyleSelected;
-  }
-  if ([action[@"style"] isEqualToString:@"destructive"]) {
-    actionStyle = UIPreviewActionStyleDestructive;
-  }
-  return [UIPreviewAction actionWithTitle:actionTitle style:actionStyle handler:^(UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewViewController) {
-    [self onActionPress:actionId];
-  }];
+    NSString *actionId = action[@"id"];
+    NSString *actionTitle = action[@"title"];
+    UIPreviewActionStyle actionStyle = UIPreviewActionStyleDefault;
+    if ([action[@"style"] isEqualToString:@"selected"]) {
+        actionStyle = UIPreviewActionStyleSelected;
+    }
+    if ([action[@"style"] isEqualToString:@"destructive"]) {
+        actionStyle = UIPreviewActionStyleDestructive;
+    }
+    return [UIPreviewAction actionWithTitle:actionTitle style:actionStyle handler:^(UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewViewController) {
+        [self onActionPress:actionId];
+    }];
 }
 
 #pragma mark - NewRelic
 
-- (NSString*) customNewRelicInteractionName
-{
-  NSString *interactionName = nil;
-  
-  if (self.view != nil && [self.view isKindOfClass:[RCTRootView class]])
-  {
-    NSString *moduleName = ((RCTRootView*)self.view).moduleName;
-    if(moduleName != nil)
-    {
-      interactionName = [NSString stringWithFormat:@"RCCViewController: %@", moduleName];
+- (NSString*) customNewRelicInteractionName {
+    NSString *interactionName = nil;
+    
+    if (self.view != nil && [self.view isKindOfClass:[RCTRootView class]]) {
+        NSString *moduleName = ((RCTRootView*)self.view).moduleName;
+        if(moduleName != nil) {
+            interactionName = [NSString stringWithFormat:@"RCCViewController: %@", moduleName];
+        }
     }
-  }
-  
-  if (interactionName == nil)
-  {
-    interactionName = [NSString stringWithFormat:@"RCCViewController with title: %@", self.title];
-  }
-  
-  return interactionName;
+    
+    if (interactionName == nil) {
+        interactionName = [NSString stringWithFormat:@"RCCViewController with title: %@", self.title];
+    }
+    
+    return interactionName;
 }
 
 #pragma mark - UIGestureRecognizerDelegate
 -(BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
-  NSNumber *disabledBackGesture = self.navigatorStyle[@"disabledBackGesture"];
-  BOOL disabledBackGestureBool = disabledBackGesture ? [disabledBackGesture boolValue] : NO;
-  return !disabledBackGestureBool;
+    NSNumber *disabledBackGesture = self.navigatorStyle[@"disabledBackGesture"];
+    BOOL disabledBackGestureBool = disabledBackGesture ? [disabledBackGesture boolValue] : NO;
+    return !disabledBackGestureBool;
 }
 
 -(BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer{
-  NSNumber *disabledSimultaneousGesture = self.navigatorStyle[@"disabledSimultaneousGesture"];
-  BOOL disabledSimultaneousGestureBool = disabledSimultaneousGesture ? [disabledSimultaneousGesture boolValue] : YES; // make default value of disabledSimultaneousGesture is true
-  return !disabledSimultaneousGestureBool;
+    NSNumber *disabledSimultaneousGesture = self.navigatorStyle[@"disabledSimultaneousGesture"];
+    BOOL disabledSimultaneousGestureBool = disabledSimultaneousGesture ? [disabledSimultaneousGesture boolValue] : YES; // make default value of disabledSimultaneousGesture is true
+    return !disabledSimultaneousGestureBool;
 }
 
 #pragma mark - UIViewControllerPreviewingDelegate
 - (UIViewController *)previewingContext:(id<UIViewControllerPreviewing>)previewingContext viewControllerForLocation:(CGPoint)location {
-  return self.previewController;
+    return self.previewController;
 }
 
 - (void)previewingContext:(id<UIViewControllerPreviewing>)previewingContext commitViewController:(UIViewController *)viewControllerToCommit {
-  if (self.previewController.previewCommit == YES) {
-    [self.previewController sendGlobalScreenEvent:@"willCommitPreview" endTimestampString:[self.previewController getTimestampString] shouldReset:YES];
-    [self.previewController sendScreenChangedEvent:@"willCommitPreview"];
-    [self.navigationController pushViewController:self.previewController animated:false];
-  }
+    if (self.previewController.previewCommit == YES) {
+        [self.previewController sendGlobalScreenEvent:@"willCommitPreview" endTimestampString:[self.previewController getTimestampString] shouldReset:YES];
+        [self.previewController sendScreenChangedEvent:@"willCommitPreview"];
+        [self.navigationController pushViewController:self.previewController animated:false];
+    }
 }
 
 - (NSArray<id<UIPreviewActionItem>> *)previewActionItems {
-  NSMutableArray *actions = [[NSMutableArray alloc] init];
-  for (NSDictionary *previewAction in self.previewActions) {
-    UIPreviewAction *action = [self convertAction:previewAction];
-    NSDictionary *actionActions = previewAction[@"actions"];
-    if (actionActions.count > 0) {
-      NSMutableArray *group = [[NSMutableArray alloc] init];
-      for (NSDictionary *previewGroupAction in actionActions) {
-        [group addObject:[self convertAction:previewGroupAction]];
-      }
-      UIPreviewActionGroup *actionGroup = [UIPreviewActionGroup actionGroupWithTitle:action.title style:UIPreviewActionStyleDefault actions:group];
-      [actions addObject:actionGroup];
-    } else {
-      [actions addObject:action];
+    NSMutableArray *actions = [[NSMutableArray alloc] init];
+    for (NSDictionary *previewAction in self.previewActions) {
+        UIPreviewAction *action = [self convertAction:previewAction];
+        NSDictionary *actionActions = previewAction[@"actions"];
+        if (actionActions.count > 0) {
+            NSMutableArray *group = [[NSMutableArray alloc] init];
+            for (NSDictionary *previewGroupAction in actionActions) {
+                [group addObject:[self convertAction:previewGroupAction]];
+            }
+            UIPreviewActionGroup *actionGroup = [UIPreviewActionGroup actionGroupWithTitle:action.title style:UIPreviewActionStyleDefault actions:group];
+            [actions addObject:actionGroup];
+        } else {
+            [actions addObject:action];
+        }
     }
-  }
-  return actions;
+    return actions;
 }
 
 @end
