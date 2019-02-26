@@ -123,6 +123,17 @@
         if (tabBarHideShadow) {
             self.tabBar.clipsToBounds = [tabBarHideShadow boolValue] ? YES : NO;
         }
+        
+        NSString *topBorderColor = tabsStyle[@"topBorderColor"];
+        if (topBorderColor) {
+            UIColor *color = (topBorderColor != (id)[NSNull null]) ? [RCTConvert UIColor:topBorderColor] : nil;
+            if (color) {
+                CGFloat borderWidth = 0.5;
+                UIView *borderLine = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.tabBar.frame.size.width, borderWidth)];
+                borderLine.backgroundColor = color;
+                [self.tabBar addSubview:borderLine];
+            }
+        }
     }
     
     NSMutableArray *viewControllers = [NSMutableArray array];
