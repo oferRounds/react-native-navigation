@@ -330,7 +330,8 @@ const NSInteger TRANSPARENT_NAVBAR_TAG = 78264803;
         
         UIColor *color = navBarBackgroundColor != (id)[NSNull null] ? [RCTConvert UIColor:navBarBackgroundColor] : nil;
         viewController.navigationController.navigationBar.barTintColor = color;
-        
+        viewController.navigationController.view.backgroundColor = color;
+        viewController.navigationController.navigationBar.backgroundColor = color;
     } else {
         viewController.navigationController.navigationBar.barTintColor = nil;
     }
