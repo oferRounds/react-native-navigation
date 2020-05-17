@@ -128,7 +128,7 @@
         if (topBorderColor) {
             UIColor *color = (topBorderColor != (id)[NSNull null]) ? [RCTConvert UIColor:topBorderColor] : nil;
             if (color) {
-                CGFloat borderWidth = 0.5;
+                CGFloat borderWidth = 1 / UIScreen.mainScreen.scale;
                 UIView *borderLine = [[UIView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.tabBar.frame.size.width, borderWidth)];
                 borderLine.backgroundColor = color;
                 [self.tabBar addSubview:borderLine];
